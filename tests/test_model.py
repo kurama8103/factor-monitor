@@ -96,3 +96,15 @@ def test_loader_cp932_and_japanese_headers(tmp_path):
 def test_too_few_dates_raises(inp):
     with pytest.raises(DataError):
         analyze(inp, Settings(start=pd.Timestamp("2026-11-10")))
+
+
+def test_load_dir_accepts_quoted_path():
+    """Windows の「パスのコピー」で付く引用符を許容する。"""
+    inp = load_dir(f'"{SAMPLE}"')
+    assert len(inp.holdings) > 0
+
+
+def test_numeric_strings_with_commas(tmp_path):
+    p = tmp_path / "h.csv"
+    p.write_text("ticker,weight\nA,\"1,000\"\nB,0.5\n", encoding="utf-8")
+    assert load_holdings(p)["weight"].tolist() == [1000.0, 0.5]

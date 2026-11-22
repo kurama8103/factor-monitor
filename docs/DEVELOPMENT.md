@@ -18,6 +18,15 @@
 - 動作確認: サンプルデータで全タブを表示確認。実データでは未確認。
 - 置き場所: `~/Developer/repos/factor-monitor`。GitHub（public）: https://github.com/kurama8103/factor-monitor 、`scripts/externals.toml` 登録済み。
 
+## 2026-11-22 Windows / Anaconda 対応の確認
+
+- Windows 実機は無いため、macOS 上で新旧のライブラリ構成（README「確認済みの組み合わせ」）でテストと AppTest を実行して確認した。
+- 修正
+  - pandas 3 で CSV の数値変換が効かずエラーになっていた（文字列列の dtype が object ではなく str になったため）。`_num` を「数値型でなければ変換」に変更。
+  - Streamlit 1.50 以降は `use_container_width` が非推奨、新しい版では `st.dataframe(height=None)` がエラー。シグネチャを見て版ごとに引数を切り替えるヘルパー（`_stretch` / `dataframe`）に集約した。
+  - フォルダ指定でパスの前後の引用符（Windows の「パスのコピー」）を除去。
+- 文字コード（UTF-8 / Shift_JIS 読み込み、BOM 付き出力）とパス処理（pathlib）は元から OS 非依存。
+
 ## 未対応・検討候補
 
 - 保有履歴（日付つき holdings）による実績ベースの要因分析

@@ -66,8 +66,9 @@ def _canon(df: pd.DataFrame, keys: list[str]) -> pd.DataFrame:
 
 
 def _num(df: pd.DataFrame) -> pd.DataFrame:
-    return df.apply(lambda s: pd.to_numeric(s.str.replace(",", ""), errors="coerce")
-                    if s.dtype == object else s)
+    # pandas 3 では文字列列の dtype が object ではなく str になるため、「数値型でなければ変換」で判定する
+    return df.apply(lambda s: s if pd.api.types.is_numeric_dtype(s)
+                    else pd.to_numeric(s.astype(str).str.replace(",", ""), errors="coerce"))
 
 
 def _dated(df: pd.DataFrame, label: str) -> pd.DataFrame:
@@ -149,7 +150,8 @@ def load_inputs(holdings, stock_returns, factor_returns, exposures=None) -> Inpu
 
 def load_dir(path: str | Path) -> Inputs:
     """フォルダ内の holdings.csv / stock_returns.csv / factor_returns.csv / exposures.csv(任意) を読む。"""
-    p = Path(path).expanduser()
+    # Windows の「パスのコピー」は "C:\..." のように引用符が付くので取り除く
+    p = Path(str(path).strip().strip('"').strip("'")).expanduser()
     for name in ("holdings.csv", "stock_returns.csv", "factor_returns.csv"):
         if not (p / name).exists():
             raise DataError(f"{p} に {name} がありません")

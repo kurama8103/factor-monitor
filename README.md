@@ -4,11 +4,44 @@
 
 ## 起動
 
+動作環境: Python 3.10 以上。macOS / Windows / Linux。
+
+### Mac / Linux
+
 ```bash
 cd ~/Developer/repos/factor-monitor
 pip install -r requirements.txt   # 初回のみ
 streamlit run app.py
 ```
+
+### Windows（Anaconda）
+
+Anaconda Prompt で実行する。pandas・numpy・plotly は Anaconda に同梱されているので、追加で入るのは主に streamlit。
+
+```bat
+git clone https://github.com/kurama8103/factor-monitor.git
+cd factor-monitor
+conda create -n factor-monitor python=3.12 -y
+conda activate factor-monitor
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+- 環境を分けずに base に入れる場合は `conda activate` までを飛ばす（`pip install` が base のパッケージを更新する点に注意）。
+- git が無ければ GitHub の「Code → Download ZIP」で取得して展開する。
+- ブラウザが自動で開かなければ表示された `http://localhost:8501` を開く。終了は Anaconda Prompt で Ctrl+C。
+- フォルダ指定の入力欄には `C:\data\factor` のようなパスを入れる。エクスプローラーの「パスのコピー」で付く `"` はそのままでよい。
+- Excel で保存した Shift_JIS の CSV もそのまま読める。ダウンロードする CSV は BOM 付き UTF-8 なので Excel で文字化けしない。
+
+### 確認済みの組み合わせ
+
+macOS 上で次の組み合わせについて、テストと画面のヘッドレス実行が通ることを確認している（Windows 実機では未確認）。
+
+| Python | streamlit | pandas | numpy | plotly |
+|---|---|---|---|---|
+| 3.10 | 1.38 | 2.0 | 1.24 | 5.18 |
+| 3.12 | 1.45 / 1.50 | 2.2 | 2.2 | 6.0 |
+| 3.13 | 1.67 | 3.1 | 2.5 | 7.1 |
 
 サイドバーの「入力元」で以下を選ぶ。
 

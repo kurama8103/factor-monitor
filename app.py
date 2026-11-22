@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
 
 import numpy as np
@@ -53,8 +54,28 @@ def layout(fig: go.Figure, height: int = 340, ypct: bool = True, xpct: bool = Fa
     return fig
 
 
+def _stretch(func) -> dict:
+    """横幅いっぱいに表示する引数。Streamlit 1.50 以降は width="stretch" が既定で
+    use_container_width は非推奨なので何も渡さず、それより古い版にだけ use_container_width を渡す。"""
+    try:
+        w = inspect.signature(func).parameters.get("width")
+    except (TypeError, ValueError):
+        w = None
+    return {} if w is not None and w.default == "stretch" else {"use_container_width": True}
+
+
+PLOT_KW, DF_KW = _stretch(st.plotly_chart), _stretch(st.dataframe)
+
+
+def dataframe(data, height: int | None = None, **kw):
+    """st.dataframe の版差吸収（新しい版は height=None を受け付けない）。"""
+    if height is not None:
+        kw["height"] = height
+    st.dataframe(data, **DF_KW, **kw)
+
+
 def show(fig: go.Figure):
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, config={"displayModeBar": False}, **PLOT_KW)
 
 
 def hbar(values: pd.Series, colors=None, height: int | None = None, fmt: str = ".2%") -> go.Figure:
@@ -122,7 +143,7 @@ def table(df: pd.DataFrame, pcols: list[str], height: int | None = None, digits:
     cfg = pct_cols(d, pcols, digits)
     cfg.update({c: st.column_config.NumberColumn(c, format="%.2f") for c in d.columns
                 if c not in cfg and pd.api.types.is_float_dtype(d[c])})
-    st.dataframe(d, use_container_width=True, height=height, column_config=cfg)
+    dataframe(d, height=height, column_config=cfg)
 
 
 # ---------------------------------------------------------------- sidebar
@@ -135,7 +156,7 @@ with st.sidebar:
             inp = load_dir(SAMPLE_DIR)
             st.caption("架空のサンプルデータを表示中")
         elif src == "フォルダ":
-            folder = st.text_input("CSVフォルダのパス", placeholder="~/data/factor")
+            folder = st.text_input("CSVフォルダのパス", placeholder=r"~/data/factor  または  C:\data\factor")
             st.caption("holdings.csv / stock_returns.csv / factor_returns.csv / exposures.csv（任意）")
             if folder:
                 inp = load_dir(folder)
@@ -373,8 +394,7 @@ with tab_fac:
 # ---------------------------------------------------------------- データ
 with tab_data:
     st.subheader("銘柄別エクスポージャー")
-    st.dataframe(res.B.join(res.weights[["portfolio", "benchmark", "active"]]), use_container_width=True,
-                 height=360)
+    dataframe(res.B.join(res.weights[["portfolio", "benchmark", "active"]]), height=360)
     st.subheader("出力")
     c = st.columns(3)
     c[0].download_button("ファクター別（CSV）", ft.to_csv().encode("utf-8-sig"), "factor_table.csv", "text/csv")
@@ -382,4 +402,4 @@ with tab_data:
     c[2].download_button("日次寄与（CSV）", res.attribution.to_csv().encode("utf-8-sig"), "attribution.csv",
                          "text/csv")
     st.subheader("ファクター共分散（年率）")
-    st.dataframe(res.factor_cov.style.format("{:.5f}"), use_container_width=True)
+    dataframe(res.factor_cov.style.format("{:.5f}"))
