@@ -1,0 +1,8 @@
+name = "factor-monitor"
+category = "finance"
+type = "command"
+description = "株式ファクターモニター（ファクターリスク・寄与度・残差）を Streamlit で起動"
+args = []
+cmd = "uv run --no-project --with-requirements requirements.txt streamlit run app.py"
+workdir = "."
+link = false
