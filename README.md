@@ -85,3 +85,7 @@ from factor_monitor import load_dir, analyze, Settings
 res = analyze(load_dir("data/sample"), Settings(mode="active"))
 res.factor_table, res.stock_table, res.summary
 ```
+
+## ライセンス
+
+[MIT](LICENSE)
